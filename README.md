@@ -46,8 +46,8 @@ SciFiCombat(작성중)
 - (4번) 메인 스킬입니다. 시작화면에서 선택한 캐릭터에 따라서 바뀌게됩니다.
 
 - (5번) 서브 스킬입니다. B키를 눌러 선택할 수 있습니다.
-![SubskillSelect](/Gifs/SubskillSelect.PNG)
-![SelectSubAbility](/Gifs/SelectSubAbility.PNG)
+![SubskillSelect](/Gifs/SubskillSelect.gif)
+![SelectSubAbility](/Gifs/SelectSubAbility.gif)
 
 
 - (6번) 원거리 무기를 장착했을 경우 탄창을 표시하며 근접무기를 장착했을 경우 Meele Weapon 이라는 이미지를 띄웁니다. 하단에는 장착한 무기의 이미지를 띄워줍니다.
@@ -61,7 +61,7 @@ SciFiCombat(작성중)
 # 3. Combat System
 ## 3.1 Input System
 
-![HUDUI](/Gifs/InputSystem.PNG)
+![InputSystem](/Gifs/InputSystem.PNG)
 
 ### 3.1.1 Movement
 
@@ -78,8 +78,8 @@ SciFiCombat(작성중)
 
 ### 3.2.1 Equip Weapon
 
-![HUDUI](/Gifs/EquipWeapon.PNG)
-![HUDUI](/Gifs/EquipSubWeapon.PNG)
+![EquipWeapon](/Gifs/EquipWeapon.gif)
+![EquipWeapon](/Gifs/EquipSubWeapon.gif)
 
 - 무기 근처에 다가가면 E 키를 눌러 무기를 장착을 할 수 있다는 안내 Widget이 팝업됩니다.
 
@@ -91,7 +91,7 @@ SciFiCombat(작성중)
 
 ### 3.2.2 Swap Weapon
 
-![SwapHitScanWeaponFire](/Gifs/SwapHitScanWeaponFire.PNG)
+![SwapHitScanWeaponFire](/Gifs/SwapHitScanWeaponFire.gif)
 
 - 모든 무기들은 EWeaponStyle 열거형 타입을 가지고 있으며, 이 타입을 통해 원거리 무기인지 근접 무기인지 정해집니다.
 
