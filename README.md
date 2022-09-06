@@ -5,7 +5,7 @@ SciFiCombat
 
 # 0. Play Demo
 
-link :
+link : https://www.youtube.com/watch?v=gXhi6nk_5mE
 
 ======================
 
