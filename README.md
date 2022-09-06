@@ -1,12 +1,11 @@
-SciFiCombat(작성중)
+SciFiCombat
 ======================
 
 ![Hilight1](/Gifs/Hilight1.png)
 
 # 0. Play Demo
 
-link(Server Play) : 
-link(Client Play) : 
+link :
 
 ======================
 
