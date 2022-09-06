@@ -176,11 +176,15 @@ link(Client Play) :
 
 - Axe와 Spear는 공격 시 자체경직이 적용됩니다. (움직일 수 없음)
 
+======================
+
 #### 3.2.4.1 Sword
 
-![SniperWeaponFire](/Gifs/SniperWeaponFire.gif)
+![SwordSwing](/Gifs/SwordSwing.gif)
 ![SwordHitGetManaPack](/Gifs/SwordHitGetManaPack.gif)
 ![SwordSmash](/Gifs/SwordSmash.gif)
+
+======================
 
 #### 3.2.4.2 Spear
 
@@ -191,6 +195,8 @@ link(Client Play) :
 ![CombatSpearSmash1](/Gifs/CombatSpearSmash1.gif)
 ![CombatSpearSmash2](/Gifs/CombatSpearSmash2.gif)
 
+======================
+
 #### 3.2.4.3 Axe
 
 ![AxeSwing_n](/Gifs/AxeSwing_n.gif)
@@ -200,6 +206,8 @@ link(Client Play) :
 ![AxeSmashHit](/Gifs/AxeSmashHit.gif)
 
 - Axe는 스매시 공격을 적중시키면 적들을 공중에 띄을 수 있습니다.
+
+======================
 
 ## 3.3 Item
 
