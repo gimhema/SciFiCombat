@@ -26,6 +26,33 @@ link : https://www.youtube.com/watch?v=gXhi6nk_5mE
 
 - 스킬 또한 동일한 방식으로 동작합니다.
 
+### 원거리 무기 발사 소스코드 RPC 적용 예시
+
+```
+void UCombatComponent::Fire()
+{
+. . . . . . . . .
+if (equipped_weapon->weapon_style == EWeaponStyle::WST_Ranger)
+		{
+			ServerFire(aim_target); // Server 함수 호출
+			. . . . . . . . .
+		}
+. . . . . . . . .
+}
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& hit_target)
+{
+	MultiCastFire(hit_target); // MultiCast 함수 호출
+}
+
+void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& hit_target)
+{
+	. . . . . . .
+		weapon_owner->PlayAnimMontageFire();
+		equipped_weapon->Fire(hit_target); // 장착된 무기의 Fire 함수 호출
+	. . . . . . . 
+}
+```
+
 
 ======================
 
