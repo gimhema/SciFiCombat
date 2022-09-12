@@ -141,6 +141,7 @@ void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& h
 
 ![ProjectileWeaponFire](/Gifs/ProjectileWeaponFire.gif)
 
+
 - 카메라에서 LineTrace를 발사한 뒤 발생하는 HitPoint로부터 Projectile이 도달해야할 Location을 계산합니다.
 
 - 총의 Muzzle 소켓의 Location을 구하고, 이 Location과 이전 단계에서 계산한 Projectile의 도달위치 간 Vector를 구합니다.
@@ -150,6 +151,7 @@ void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& h
 - Projectile의 발사 각도를 구하고나면 Projectile Actor를 Spawn합니다. Projectile은 Projectile - Movement Component가 부착되어 있기 때문에 지정된 속도로 발사됩니다.
 
 - Projectile은 Hit Event가 실행되면 지정해둔 OnHit 함수에 따라 파괴되거나, 몬스터에게 데미지를 입힙니다.
+
 
 #### 3.2.3.2 Hitscan Type Weapon
 
