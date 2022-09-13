@@ -1,4 +1,7 @@
-SciFiCombat
+# SciFiCombat
+
+![Hilight1](/Gifs/Hilight1.png)
+
 ======================
 
 # Update
@@ -7,8 +10,6 @@ SciFiCombat
 
 ======================
 
-
-![Hilight1](/Gifs/Hilight1.png)
 
 # 0. Play Demo
 
