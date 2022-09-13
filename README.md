@@ -1,6 +1,13 @@
 SciFiCombat
 ======================
 
+# Update
+
+2022-09-13 : LAN 기반 멀티플레이 서버 생성, 조인 기능 업데이트됨.
+
+======================
+
+
 ![Hilight1](/Gifs/Hilight1.png)
 
 # 0. Play Demo
@@ -53,7 +60,6 @@ void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& h
 }
 ```
 
-2022-09-13 : LAN 기반 멀티플레이 서버 생성, 조인 기능 업데이트됨.
 
 ======================
 
