@@ -9,6 +9,9 @@
 2022-09-13 : 멀티플레이 서버 생성, 조인 기능 추가
 link : https://www.youtube.com/watch?v=acJdiXF-D9w
 
+2022-09-17 : 인벤토리 시스템 테스트 (Server Only)
+link : https://www.youtube.com/watch?v=x7Y16I_mIrQ
+
 ======================
 
 
