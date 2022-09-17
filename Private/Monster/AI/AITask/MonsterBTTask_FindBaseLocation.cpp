@@ -7,6 +7,7 @@
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "SciFiCombat/Public/Monster/AI/MonsterAIControllerBase.h"
+#include "SciFiCombat/Public/Monster/MonsterBase.h"
 
 UMonsterBTTask_FindBaseLocation::UMonsterBTTask_FindBaseLocation()
 {
@@ -21,14 +22,18 @@ EBTNodeResult::Type UMonsterBTTask_FindBaseLocation::ExecuteTask(UBehaviorTreeCo
 	uint8* NodeMemory)
 {
 	// AI Controller에서 Static하게 지정된 Location을 가져온다.
-	FVector base_location = Cast<AMonsterAIControllerBase>(OwnerComp.GetAIOwner())->base_location;
+	AMonsterAIControllerBase* monster_controller = Cast<AMonsterAIControllerBase>(OwnerComp.GetAIOwner());
+	if (monster_controller->GetControlledMonster()->GetIsCCControlled() == false)
+	{
+		FVector base_location = Cast<AMonsterAIControllerBase>(OwnerComp.GetAIOwner())->base_location;
 
-	AAIController* aiController = OwnerComp.GetAIOwner();
-	
-	aiController->GetBlackboardComponent()->SetValueAsVector(BlackboardKey.SelectedKeyName, base_location);
-	//aiController->GetBlackboardComponent()->SetValueAsBool
+		AAIController* aiController = OwnerComp.GetAIOwner();
 
-	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		aiController->GetBlackboardComponent()->SetValueAsVector(BlackboardKey.SelectedKeyName, base_location);
+		//aiController->GetBlackboardComponent()->SetValueAsBool
+
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	}
 	return EBTNodeResult::Succeeded;
 	// 해당 Location을 Base Locatio으로 지정하고 Succeed로 돌린다.
 }

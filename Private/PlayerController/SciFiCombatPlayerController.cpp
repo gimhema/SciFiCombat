@@ -18,6 +18,7 @@
 #include "SciFiCombat/Public/Character/CombatMasterBase.h"
 #include "SciFiCombat/Public/Character/MagicianBase.h"
 #include "SciFiCombat/Public/Character/GuardianBase.h"
+#include "TimerManager.h"
 
 void ASciFiCombatPlayerController::BeginPlay()
 {
@@ -82,6 +83,28 @@ void ASciFiCombatPlayerController::SetSmashPowerProgress(float smash_power, floa
 	}
 }
 
+void ASciFiCombatPlayerController::SetManaProgress(float current_mana, float max_mana)
+{
+	player_hud = player_hud == nullptr ? Cast<ASciFiCombatPlayerHUD>(GetHUD()) : player_hud;
+	bool hud_valid = player_hud &&
+		player_hud->status_overlay &&
+		player_hud->status_overlay->mana_bar &&
+		player_hud->status_overlay->mana_text;
+	// Status Overlay¿¡ mana_bar, mana_text, mana_percent Ãß°¡
+
+	if (hud_valid)
+	{
+		float __mana_percent = current_mana / max_mana;
+		player_hud->status_overlay->mana_percent = __mana_percent;
+	}
+	else
+	{
+		overlay_initialized = true;
+		hud_mana = current_mana;
+		hud_max_mana = max_mana;
+	}
+}
+
 void ASciFiCombatPlayerController::OnPossess(APawn* inPawn)
 {
 	Super::OnPossess(inPawn);
@@ -109,6 +132,7 @@ void ASciFiCombatPlayerController::OnPossess(APawn* inPawn)
 	{
 		SetHealthProgress(combat_character->GetCurrentHealth(), combat_character->GetMaxHealth());
 		SetSmashPowerProgress(combat_character->GetCurrentSmashPower(), combat_character->GetMaxSmashPower());
+		SetManaProgress(combat_character->GetCurrentMana(), combat_character->GetMaxMana());
 	}
 }
 
@@ -127,6 +151,30 @@ void ASciFiCombatPlayerController::SetScoreText(float score)
 		hud_score = score;
 	}
 }
+
+void ASciFiCombatPlayerController::SetAbilityAlarmText(FString alarm_text)
+{
+	player_hud = player_hud == nullptr ? Cast<ASciFiCombatPlayerHUD>(GetHUD()) : player_hud;
+	bool hud_valid = player_hud && player_hud->status_overlay && player_hud->status_overlay->ability_alarm_text;
+	if (hud_valid)
+	{
+		//FString alram = FString::Printf(TEXT("%d"), FMath::FloorToInt(score));
+		player_hud->status_overlay->ability_alarm_text->SetText(FText::FromString(alarm_text));
+
+		FTimerHandle delay_handle;
+		GetWorld()->GetTimerManager().SetTimer(delay_handle, FTimerDelegate::CreateLambda([&]()
+			{
+				player_hud->status_overlay->ability_alarm_text->SetText(FText::FromString(""));
+			}), 3.0, false);
+	}
+	else
+	{
+		overlay_initialized = true;
+		hud_ability_alarm_string = alarm_text;
+	}
+}
+
+
 
 void ASciFiCombatPlayerController::SetWeaponAmmoText(int32 ammo)
 {
@@ -485,6 +533,8 @@ void ASciFiCombatPlayerController::PollInit()
 				SetScoreText(hud_score);
 				SetDeathCountText(hud_death);
 				SetSmashPowerProgress(hud_smash_power, hud_max_smash_power);
+				SetManaProgress(hud_mana, hud_max_mana);
+				SetAbilityAlarmText(hud_ability_alarm_string);
 			}
 		}
 	}

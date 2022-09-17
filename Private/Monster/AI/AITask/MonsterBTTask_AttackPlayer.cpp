@@ -23,11 +23,14 @@ EBTNodeResult::Type UMonsterBTTask_AttackPlayer::ExecuteTask(UBehaviorTreeCompon
 {
 	// 이 태스크가 진행된다는 것은 이미 플레이어가 적의 공격반경에 들어왔음을 의미한다.
 	AMonsterAIControllerBase* monster_controller = Cast<AMonsterAIControllerBase>(OwnerComp.GetAIOwner());
-	bool target_valid = monster_controller->GetControlledMonster()->TargetPlayerValid();
-	if (target_valid)
+	if (monster_controller->GetControlledMonster()->GetIsCCControlled() == false)
 	{
-		// Monster Controller에서 공격이벤트를 실행한다.
-		monster_controller->AttackPlayer();
+		bool target_valid = monster_controller->GetControlledMonster()->TargetPlayerValid();
+		if (target_valid)
+		{
+			// Monster Controller에서 공격이벤트를 실행한다.
+			monster_controller->AttackPlayer();
+		}
 	}
 	return EBTNodeResult::Succeeded;
 }

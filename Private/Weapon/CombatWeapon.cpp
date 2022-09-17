@@ -15,7 +15,6 @@ ACombatWeapon::ACombatWeapon()
 	bReplicates = true;
 
 	weapon_mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	// weapon_mesh->SetupAttachment(RootComponent);
 	SetRootComponent(weapon_mesh);
 
 	weapon_mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
@@ -80,6 +79,7 @@ void ACombatWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(ACombatWeapon, melee_combo_count);
 	DOREPLIFETIME(ACombatWeapon, melee_hit_enable);
 	DOREPLIFETIME(ACombatWeapon, melee_hit_enable);
+	DOREPLIFETIME(ACombatWeapon, weapon_image);
 	DOREPLIFETIME(ACombatWeapon, is_can_melee_attack);
 }
 
@@ -142,7 +142,6 @@ void ACombatWeapon::ShowPickUpWeaponWidget(bool isShowWidget)
 		pickup_widget->SetVisibility(isShowWidget);
 	}
 }
-
 
 
 void ACombatWeapon::DropWeapon()
@@ -274,9 +273,12 @@ void ACombatWeapon::AddAmmo(int32 added_ammo)
 	
 }
 
+void ACombatWeapon::SetWeaponOwnerInputLock(bool lock)
+{
+	weapon_owner_character->SetInputLock(lock);
+}
 
-
-
-
-
-
+bool ACombatWeapon::GetWeaponOwnerInputLock()
+{
+	return weapon_owner_character->GetInputLock();
+}

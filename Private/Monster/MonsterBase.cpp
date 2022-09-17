@@ -15,6 +15,9 @@
 #include "SciFiCombat/Public/Character/CombatCharacter.h"
 #include "SciFiCombat/Public/Monster/AI/MonsterAIControllerBase.h"
 #include "Sound/SoundCue.h"
+#include "Components/SceneComponent.h"
+#include "SciFiCombat/Public/CombatComponent/CrowdControlComponent.h"
+#include "SciFiCombat/Public/PickupItem/ManaPack.h"
 
 // Sets default values
 AMonsterBase::AMonsterBase()
@@ -26,12 +29,22 @@ AMonsterBase::AMonsterBase()
 	sensing_component = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("SensingComponent"));
 	sensing_component->OnSeePawn.AddDynamic(this, &AMonsterBase::OnSeePawn);
 
+	hit_point = CreateDefaultSubobject<USceneComponent>(TEXT("HitPoint"));
+	hit_point->SetupAttachment(RootComponent);
+
+	cc_component = CreateDefaultSubobject<UCrowdControlComponent>(TEXT("CC Component"));
+	cc_component->SetIsReplicated(true);
+
+	cc_marker = CreateDefaultSubobject<USceneComponent>(TEXT("CCMarker"));
+	cc_marker->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
 void AMonsterBase::BeginPlay()
 {
 	Super::BeginPlay();
+	cc_component->InitializeCCComponent(cc_marker->GetComponentLocation());
+	cc_component->SetIsCCMarker(cc_marker);
 	if (HasAuthority())
 	{
 		reset_max_walk_speed = GetCharacterMovement()->MaxWalkSpeed;
@@ -69,8 +82,41 @@ void AMonsterBase::ReceiveDamage(AActor* damaged_actor, float damage,
 	UpdateHealthProgress();
 	if (current_health <= 0.f)
 	{
-		Destroy();
+		is_death = true;
+		if (death_destroy_option)
+		{
+			Destroy();
+		}
+		else
+		{
+			if (death_motion_play_opt)
+			{
+				DeathMotion();
+				death_motion_play_opt = false;
+			}
+		}
 	}
+}
+
+void AMonsterBase::DeathMotion()
+{
+	ServerDeathMotion();
+}
+
+void AMonsterBase::ServerDeathMotion_Implementation()
+{
+	MultiCastDeathMotion();
+}
+
+void AMonsterBase::MultiCastDeathMotion_Implementation()
+{
+	UGameplayStatics::PlaySoundAtLocation(
+		this,
+		destroyed_sound,
+		GetActorLocation(),
+		GetActorRotation()
+	);
+	GetMesh()->PlayAnimation(death_anim_sequence, false);
 }
 
 void AMonsterBase::UpdateMonsterVelocity()
@@ -144,6 +190,7 @@ void AMonsterBase::Destroyed()
 {
 	// ÆÄ±« ÀÌÆåÆ® Àç»ý
 	Super::Destroyed();
+	CallManaPackSpawn();
 	if (destroyed_effect)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
@@ -174,3 +221,39 @@ bool AMonsterBase::TargetPlayerValid()
 {
 	return (IsValid(target_player) ? true : false);
 }
+
+bool AMonsterBase::GetIsCCControlled()
+{
+	return cc_component->GetIsCrowdControlled();
+}
+
+
+void AMonsterBase::CallManaPackSpawn()
+{
+	ServerManaPackSpawn();
+}
+
+void AMonsterBase::ServerManaPackSpawn_Implementation()
+{
+	MultiCastManaPackSpawn();
+}
+
+void AMonsterBase::MultiCastManaPackSpawn_Implementation()
+{
+	ManaPackSpawn();
+}
+
+void AMonsterBase::ManaPackSpawn()
+{
+	UWorld* world = GetWorld();
+	if (world)
+	{
+		world->SpawnActor<AManaPack>(
+			mana_pack,
+			GetActorLocation(),
+			GetActorRotation()
+			);
+	}
+}
+
+

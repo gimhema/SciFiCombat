@@ -10,11 +10,12 @@
 #include "Math/UnrealMathUtility.h"
 #include "Components/SceneComponent.h"
 #include "SciFiCombat/Public/Weapon/ProjectileBase.h"
-
+#include "PhysicsEngine/RadialForceComponent.h"
 
 ABomberMonsterBase::ABomberMonsterBase()
 {
-
+	spawn_radial_force_component = CreateDefaultSubobject<URadialForceComponent>(TEXT("Radial Force"));
+	spawn_radial_force_component->SetupAttachment(RootComponent);
 }
 
 void ABomberMonsterBase::ServerAttack_Implementation()
@@ -38,6 +39,8 @@ void ABomberMonsterBase::MultiCastAttack_Implementation()
 			GetActorLocation() ,
 			spawn_rot
 			);
+
+		spawn_radial_force_component->FireImpulse();
 	}
 
 	FTimerHandle wait_handle;

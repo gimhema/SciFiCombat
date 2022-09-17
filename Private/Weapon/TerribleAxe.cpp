@@ -7,10 +7,15 @@
 #include "TimerManager.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SciFiCombat/Public/CombatComponent/CrowdControlComponent.h"
+#include "Monster/MonsterBase.h"
 
 void ATerribleAxe::DoMeleeAttack(int32 combo_idx)
 {
 	if (!is_can_melee_attack) return;
+
+	SetWeaponOwnerInputLock(true);
+
 	PlaySwingAnimMontage(combo_idx);
 
 	is_can_melee_attack = false;
@@ -27,6 +32,7 @@ void ATerribleAxe::DoMeleeAttack(int32 combo_idx)
 		{
 			is_can_melee_attack = true;
 			melee_hit_enable = false;
+			SetWeaponOwnerInputLock(false);
 		}), melee_attack_enable_delay, false);
 
 
@@ -85,12 +91,22 @@ void ATerribleAxe::ResetAnimMode(float delay)
 		}), delay, false);
 }
 
+void ATerribleAxe::CCProcess(AActor* cc_target_actor)
+{
+	if (cc_mode)
+	{
+		Cast<AMonsterBase>(cc_target_actor)->cc_component->CallAirborne(cc_delay, cc_force);
+	}
+}
+
 void ATerribleAxe::MeleeSmashAttack()
 {
 	Super::MeleeSmashAttack();
-
+	HitAreaSizeup();
+	SetWeaponOwnerInputLock(true);
 	is_can_melee_attack = false;
 	melee_hit_enable = true;
+	cc_mode = true;
 
 	melee_damage = smash_damage;
 	//FVector smash_foward_velocity = UKismetMathLibrary::GetForwardVector(weapon_owner_character->GetActorRotation()) * smash_distance;
@@ -124,6 +140,9 @@ void ATerribleAxe::MeleeSmashAttack()
 			melee_hit_enable = false;
 			melee_damage = melee_damage_reset;
 			weapon_owner_character->GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+			HitAreaReset();
+			SetWeaponOwnerInputLock(false);
+			cc_mode = false;
 			// 여기에 코드를 치면 된다.
 		}), smash_delay, false); //반복도 여기서 추가 변수를 선언해 설정가능
 	// Delay

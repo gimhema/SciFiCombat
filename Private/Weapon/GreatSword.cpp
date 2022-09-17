@@ -8,6 +8,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SceneComponent.h"
+#include "SciFiCombat/Public/CombatComponent/CrowdControlComponent.h"
+#include "Monster/MonsterBase.h"
 
 void AGreatSword::DoMeleeAttack(int32 combo_idx)
 {
@@ -61,10 +63,20 @@ void AGreatSword::PlaySwingAnimMontage(int32 combo_idx)
 	}
 }
 
+void AGreatSword::CCProcess(AActor* cc_target_actor)
+{
+	if (cc_mode)
+	{
+		Cast<AMonsterBase>(cc_target_actor)->cc_component->CallStun(cc_delay);
+	}
+}
+
 void AGreatSword::MeleeSmashAttack()
 {
 	Super::MeleeSmashAttack();
-
+	HitAreaSizeup();
+	SetWeaponOwnerInputLock(true);
+	cc_mode = true;
 	is_can_melee_attack = false;
 	melee_hit_enable = true;
 
@@ -85,14 +97,14 @@ void AGreatSword::MeleeSmashAttack()
 	FTimerHandle spawn_obj_handle;
 	FVector spawn_location = weapon_owner_character->ability_object_muzzle->GetComponentLocation();
 	FRotator spawn_rotation = weapon_owner_character->ability_object_muzzle->GetComponentRotation();
-	GetWorld()->GetTimerManager().SetTimer(spawn_obj_handle, FTimerDelegate::CreateLambda([&]()
-		{
-			// LaunchCharacter
-			FRotator rot = FRotator(0.f, 0.f, 0.f);
-			SpawnSmashAttackObj(spawn_location, spawn_rotation);
-			//weapon_owner_character->GetCharacterMovement()->AddForce(smash_foward_velocity.GetSafeNormal(0.0001) * smash_force);
-			// 여기에 코드를 치면 된다.
-		}), spawn_smash_obj_delay, false);
+	//GetWorld()->GetTimerManager().SetTimer(spawn_obj_handle, FTimerDelegate::CreateLambda([&]()
+	//	{
+	//		// LaunchCharacter
+	//		FRotator rot = FRotator(0.f, 0.f, 0.f);
+	//		//SpawnSmashAttackObj(spawn_location, spawn_rotation);
+	//		//weapon_owner_character->GetCharacterMovement()->AddForce(smash_foward_velocity.GetSafeNormal(0.0001) * smash_force);
+	//		// 여기에 코드를 치면 된다.
+	//	}), spawn_smash_obj_delay, false);
 
 	// Delay
 	FTimerHandle wait_handle;
@@ -102,6 +114,9 @@ void AGreatSword::MeleeSmashAttack()
 			melee_hit_enable = false;
 			melee_damage = melee_damage_reset;
 			weapon_owner_character->GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+			SetWeaponOwnerInputLock(false);
+			HitAreaReset();
+			cc_mode = false;
 			// 여기에 코드를 치면 된다.
 		}), smash_delay, false); //반복도 여기서 추가 변수를 선언해 설정가능
 	// Delay

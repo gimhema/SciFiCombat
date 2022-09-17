@@ -9,6 +9,9 @@
 #include "SciFiCombat/Public/Character/CombatCharacter.h"
 #include "SciFiCombat/Public/Weapon/SmashDamageObjectDefault.h"
 #include "SciFiCombat/Public/Monster/MonsterBase.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "Sound/SoundCue.h"
 
 AMeleeWeaponBase::AMeleeWeaponBase()
 {
@@ -29,6 +32,8 @@ void AMeleeWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	melee_hit_area_reset_size = melee_hit_area->GetComponentScale();
+
 	if (HasAuthority()) // Same Meaning -> GetLocalRole() == ENetRole::ROLE_Authority
 	{
 		melee_hit_area->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -44,6 +49,11 @@ void AMeleeWeaponBase::ComboProcess()
 
 	//if (melee_combo_count >= melee_combo_count_max) { ComboReset(); }
 	//melee_combo_count = melee_combo_count + 1;
+}
+
+void AMeleeWeaponBase::CCProcess(AActor* cc_target_actor)
+{
+
 }
 
 void AMeleeWeaponBase::DoMeleeAttack(int32 combo_idx)
@@ -144,7 +154,9 @@ void AMeleeWeaponBase::OverlapMeleeHitArea(
 {
 	if (!weapon_owner_character) { return; }
 
-	bool monster_valid = IsValid(Cast<AMonsterBase>(OtherActor));
+	AMonsterBase* damaged_monster = Cast<AMonsterBase>(OtherActor);
+	//bool monster_valid = IsValid(Cast<AMonsterBase>(OtherActor));
+	bool monster_valid = IsValid(damaged_monster);
 
 	if (melee_hit_enable && monster_valid)
 	{
@@ -156,8 +168,13 @@ void AMeleeWeaponBase::OverlapMeleeHitArea(
 			AController* owner_controller = owner_character->Controller;
 			if (owner_controller)
 			{
+				SpawnMeleeHitEffect(damaged_monster->hit_point->GetComponentLocation());
+				CCProcess(OtherActor);
 				UGameplayStatics::ApplyDamage(OtherActor, melee_damage, owner_controller, this, UDamageType::StaticClass());
 				weapon_owner_character->IncreaseSmashPower(smash_power_gain);
+
+				//SpawnMeleeHitEffect(Cast<AMonsterBase>(OtherActor)->hit_point->GetComponentLocation());
+				
 			}
 		}
 	}
@@ -168,3 +185,40 @@ void AMeleeWeaponBase::OverlapMeleeHitArea(
 	}
 }
 
+void AMeleeWeaponBase::HitAreaSizeup()
+{
+	//smash_obj_sizeup_offset
+	FVector sizeup_scale = melee_hit_area_reset_size * smash_obj_sizeup_offset;
+	melee_hit_area->SetWorldScale3D(sizeup_scale);
+}
+
+void AMeleeWeaponBase::HitAreaReset()
+{
+	//smash_obj_sizeup_offset
+	melee_hit_area->SetWorldScale3D(melee_hit_area_reset_size);
+}
+
+void AMeleeWeaponBase::SpawnMeleeHitEffect(FVector spawn_loc)
+{
+	ServerSpawnMeleeHitEffect(spawn_loc);
+}
+
+
+void AMeleeWeaponBase::ServerSpawnMeleeHitEffect_Implementation(FVector spawn_loc)
+{
+	NetMulticastSpawnMeleeHitEffect(spawn_loc);
+}
+
+void AMeleeWeaponBase::NetMulticastSpawnMeleeHitEffect_Implementation(FVector spawn_loc)
+{
+	FRotator spawn_rot = FRotator(0.f, 0.f, 0.f);
+
+	UGameplayStatics::PlaySoundAtLocation(
+		GetWorld(),
+		melee_hit_sound,
+		spawn_loc,
+		spawn_rot
+	);
+
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), melee_hit_effect_niagara, spawn_loc, spawn_rot);
+}
