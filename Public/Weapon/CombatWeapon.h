@@ -79,6 +79,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Waepon Property")
 	class UAnimationAsset* fire_animation;
 
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	class UTexture2D* weapon_image;
+
 	UFUNCTION()
 	void OnRep_WeaponStatus();
 
@@ -165,6 +168,10 @@ public:
 	bool is_can_melee_attack = true;
 
 
+	UFUNCTION()
+	void SetWeaponOwnerInputLock(bool lock);
+	UFUNCTION()
+	bool GetWeaponOwnerInputLock();
 
 public:
 	// Outline

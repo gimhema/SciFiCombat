@@ -24,7 +24,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
-	void OverlapMeleeHitArea(
+	virtual void OverlapMeleeHitArea(
 		UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,

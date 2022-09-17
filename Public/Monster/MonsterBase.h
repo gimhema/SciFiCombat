@@ -24,6 +24,16 @@ public:
 	void ReceiveDamage(AActor* damaged_actor, float damage,
 			const UDamageType* damage_type, class AController* instigator_controller,
 			AActor* damage_causer);
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MonsterAnimation)
+	bool death_destroy_option = true;
+	UPROPERTY(BlueprintReadWrite)
+	bool is_death = false;
+	bool death_motion_play_opt = true;
+
+	UPROPERTY(EditAnywhere)
+	class USoundCue* death_sound;
+	UPROPERTY(EditAnywhere, Category = MonsterAnimation)
+	class UAnimationAsset* death_anim_sequence;
 
 	UFUNCTION()
 	virtual void Attack(); // 원거리몬스터는 투사체발사, 근거리 몬스터는 히트박스 활성화
@@ -54,6 +64,12 @@ public:
 	void ResetMaxWalkSpeed();
 	UFUNCTION()
 	void ZeroMaxWalkSpeed();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UCrowdControlComponent* cc_component;
+	UFUNCTION()
+	bool GetIsCCControlled();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -67,7 +83,7 @@ public:
 	float attack_power = 0.f;
 	UPROPERTY(EditAnywhere, Category = "Status")
 	float max_health = 100.f;
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Status")
+	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Health, Category = "Status")
 	float current_health = 100.f;
 	UPROPERTY(EditAnywhere, Category = "Status")
 	double attack_distance = 500.0f;
@@ -90,12 +106,39 @@ public:
 	UPROPERTY(EditAnywhere)
 	class USoundCue* destroyed_sound;
 
+	UPROPERTY(EditAnywhere, Category = AttackOption)
+	class USceneComponent* hit_point;
+
+	UPROPERTY(EditAnywhere, Category = AttackOption)
+	class USceneComponent* cc_marker;
 
 	UPROPERTY(EditAnywhere)
 	class UPawnSensingComponent* sensing_component;
 
 	UPROPERTY()
 	class AMonsterAIControllerBase* monster_ai_controller;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AManaPack> mana_pack;
+
+	UFUNCTION()
+	void CallManaPackSpawn();
+	UFUNCTION(Server, Reliable)
+	void ServerManaPackSpawn();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastManaPackSpawn();
+	UFUNCTION()
+	void ManaPackSpawn();
+
+	UFUNCTION()
+	void DeathMotion();
+	UFUNCTION(Server, Reliable)
+	void ServerDeathMotion();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastDeathMotion();
+
+
+	//_Implementation
 };
 
 

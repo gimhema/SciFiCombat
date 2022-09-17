@@ -40,6 +40,7 @@ public:
 	float smash_launch_delay = 0.2;
 public:
 	virtual void DoMeleeAttack(int32 combo_idx) override;
+	virtual void CCProcess(AActor* cc_target_actor) override;
 	void PlaySwingAnimMontage(int32 combo_idx);
 	virtual void MeleeSmashAttack() override;
 };

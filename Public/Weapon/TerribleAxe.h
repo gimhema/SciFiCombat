@@ -42,8 +42,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
 	float attack_dash_reset_delay3 = 0.4f;
 
+
 public:
 	virtual void DoMeleeAttack(int32 combo_idx) override;
+	virtual void CCProcess(AActor* cc_target_actor) override;
 	void PlaySwingAnimMontage(int32 combo_idx);
 	virtual void MeleeSmashAttack() override;
 	void AttackDash(float delay);

@@ -57,18 +57,26 @@ public:
 	float hud_score;
 	float hud_smash_power;
 	float hud_max_smash_power;
+	float hud_mana;
+	float hud_max_mana;
 	int32 hud_death;
+	FString hud_ability_alarm_string;
 
 public:
+	// Status
 	void SetHealthProgress(float health, float max_health);
 	void SetSmashPowerProgress(float smash_power, float max_smash_power);
+	void SetManaProgress(float current_mana, float max_mana);
+
+	// Util
 	void SetScoreText(float score);
 	void SetDeathCountText(int32 death);
 	void SetWeaponAmmoText(int32 ammo);
 	void SetCarriedWeaponAmmoText(int32 ammo);
 	void SetMatchCountDownText(float time);
 	void SetWaitingCountDownText(float _countdown);
-
+	void SetAbilityAlarmText(FString alarm_text);
+	
 	FORCEINLINE void SetPlayerIFF(int32 IFF) { player_IFF = IFF; }
 	FORCEINLINE int32 GetPlayerIFF() { return player_IFF; }
 

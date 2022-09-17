@@ -51,9 +51,33 @@ public:
 	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
 	float combo_reset_delay = 3.2f;
 
+	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	float smash_obj_sizeup_offset = 2.f;
+
+	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	FVector melee_hit_area_reset_size;
+
+	UPROPERTY(EditAnywhere, Category = MeleeAttackEffectOption)
+	class USoundCue* melee_hit_sound;
+	UPROPERTY(EditAnywhere, Category = MeleeAttackEffectOption)
+	class UNiagaraSystem* melee_hit_effect_niagara;
+	UPROPERTY(EditAnywhere, Category = MeleeAttackEffectOption)
+	class UParticleSystem* melee_hit_effect;
+	UPROPERTY(EditAnywhere, Category = MeleeAttackEffectOption)
+	bool melee_hit_use_niagara = false;
+
+	UPROPERTY(EditAnywhere, Category = CCOption)
+	float cc_delay = 2.0f;
+	UPROPERTY(EditAnywhere, Category = CCOption)
+	float cc_force = 600.0f;
+	UPROPERTY()
+	bool cc_mode = false;
+
 public:
 	// Melee Method
 	virtual void ComboProcess() override;
+	UFUNCTION()
+	virtual void CCProcess(AActor* cc_target_actor);
 	UFUNCTION()
 	virtual void DoMeleeAttack(int32 combo_idx);
 	UFUNCTION()
@@ -81,4 +105,15 @@ public:
 	UFUNCTION()
 	void SpawnSmashAttackObj(FVector spawn_loc, FRotator spawn_rot);
 
+	UFUNCTION()
+	void HitAreaSizeup();
+	UFUNCTION()
+	void HitAreaReset();
+
+	UFUNCTION()
+	void SpawnMeleeHitEffect(FVector spawn_loc);
+	UFUNCTION(Server, Reliable)
+	void ServerSpawnMeleeHitEffect(FVector spawn_loc);
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticastSpawnMeleeHitEffect(FVector spawn_loc);
 };

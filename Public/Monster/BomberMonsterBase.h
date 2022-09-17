@@ -24,6 +24,8 @@ public:
 	UFUNCTION()
 	void SpawnDamageObject();
 public:
+	UPROPERTY(EditAnywhere)
+	class URadialForceComponent* spawn_radial_force_component;
 
 
 	UPROPERTY(EditAnywhere, Category = AttackOption)
