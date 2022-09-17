@@ -16,6 +16,10 @@ link : https://www.youtube.com/watch?v=x7Y16I_mIrQ
 
 detail : https://velog.io/@mino0215/Inventory-System
 
+2022-09-18 : 채팅 시스템
+
+link : https://www.youtube.com/watch?v=WkHf3oVAtls
+
 ======================
 
 
