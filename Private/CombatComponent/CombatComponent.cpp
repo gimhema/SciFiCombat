@@ -43,6 +43,8 @@ void UCombatComponent::EquipWeapon(ACombatWeapon* weapon)
 
 	weapon_owner->GetCharacterMovement()->bOrientRotationToMovement = false;
 	weapon_owner->bUseControllerRotationYaw = true;
+
+	//weapon_owner->SetWeaponImage();
 }
 
 void UCombatComponent::EquipPrimaryWeapon(ACombatWeapon* weapon)
@@ -143,6 +145,8 @@ void UCombatComponent::SwitchWeapon()
 
 	equipped_sub_weapon->SetWeaponStatus(EWeaponStatus::EWS_EquippedSub);
 	AttachSubWeaponToSocket(equipped_sub_weapon);
+
+	//weapon_owner->SetWeaponImage();
 }
 
 bool UCombatComponent::IsCanSwitchWeapon()

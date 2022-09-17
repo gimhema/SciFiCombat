@@ -8,9 +8,13 @@
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "SciFiCombat/Public/Weapon/CombatWeapon.h"
+#include "Components/SphereComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Inventory/InventoryComponent.h"
+#include "Inventory/InteractableBase.h"
 #include "SciFiCombat/Public/CombatComponent/CombatComponent.h"
 #include "SciFiCombat/Public/CombatComponent/SciFiAbilityComponent.h"
+#include "SciFiCombat/Public/CombatComponent/CrowdControlComponent.h"
 #include "SciFiCombat/Public/WireAction/GrappleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "SciFiCombat/SciFiCombat.h"
@@ -30,6 +34,7 @@
 #include "Components/Image.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ACombatCharacter::ACombatCharacter()
@@ -59,14 +64,27 @@ ACombatCharacter::ACombatCharacter()
 	ability_component = CreateDefaultSubobject<USciFiAbilityComponent>(TEXT("Ability Component"));
 	ability_component->SetIsReplicated(true);
 
+	cc_component = CreateDefaultSubobject<UCrowdControlComponent>(TEXT("CC Component"));
+	cc_component->SetIsReplicated(true);
+
 	ability_object_muzzle = CreateDefaultSubobject<USceneComponent>(TEXT("Ability Object Fire Component"));
 	ability_object_muzzle->SetIsReplicated(true);
 	ability_object_muzzle->SetupAttachment(RootComponent);
 
+	cc_marker = CreateDefaultSubobject<USceneComponent>(TEXT("CCMarker"));
+	cc_marker->SetupAttachment(RootComponent);
 	
 	buff_ability_effect_scene = CreateDefaultSubobject<USceneComponent>(TEXT("Buff Ability Effect Scene"));
 	buff_ability_effect_scene->SetIsReplicated(true);
 	buff_ability_effect_scene->SetupAttachment(RootComponent);
+
+	
+	item_collection_sphere = CreateDefaultSubobject<USphereComponent>(TEXT("ItemCollectionSphere"));
+	item_collection_sphere->SetupAttachment(RootComponent);
+	item_collection_sphere->SetSphereRadius(200.f);
+
+	inventory_component = CreateDefaultSubobject<UInventoryComponent>(TEXT("ItemInventoryComponent"));
+	inventory_component->SetIsReplicated(true);
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
@@ -90,6 +108,7 @@ void ACombatCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(ACombatCharacter, fire_montage);
 	DOREPLIFETIME(ACombatCharacter, current_health);
 	DOREPLIFETIME(ACombatCharacter, current_smash_power);
+	DOREPLIFETIME(ACombatCharacter, current_mana);
 	DOREPLIFETIME(ACombatCharacter, gameplay_disable_option);
 	DOREPLIFETIME(ACombatCharacter, combat_IFF);
 	DOREPLIFETIME(ACombatCharacter, is_grappling);
@@ -114,9 +133,12 @@ void ACombatCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-
+	inventory_component->SetInventoryOwer(this);
 	UpdateHealthProgress();
 	UpdateSmashPowerProgress();
+	UpdateManaProgress();
+	cc_component->InitializeCCComponent(cc_marker->GetComponentLocation());
+	cc_component->SetIsCCMarker(cc_marker);
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ACombatCharacter::ReceiveDamage);
@@ -168,6 +190,9 @@ void ACombatCharacter::Tick(float DeltaTime)
 	// AimOffset(DeltaTime);
 	HideCamera();
 	PollInit();
+
+	//CollectAutoPickups();
+	//CheckForInteractables();
 	//GrappleSpin();
 }
 
@@ -244,10 +269,13 @@ void ACombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ACombatCharacter::ReleaseFire);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ACombatCharacter::PressReload);
 	PlayerInputComponent->BindAction("Evade", IE_Pressed, this, &ACombatCharacter::PressEvadeKey);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ACombatCharacter::InteractPickupItem);
 
 	PlayerInputComponent->BindAction("Ability1", IE_Pressed, this, &ACombatCharacter::PressAbility1);
 	PlayerInputComponent->BindAction("Ability2", IE_Pressed, this, &ACombatCharacter::PressAbility2);
+
 	PlayerInputComponent->BindAction("Awakening", IE_Pressed, this, &ACombatCharacter::PressAbility3);
+	PlayerInputComponent->BindAction("TestKey2", IE_Pressed, this, &ACombatCharacter::PressAbility4);
 
 	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &ACombatCharacter::PressViewOnCursor);
 	PlayerInputComponent->BindAction("ViewSubSkillMenu", IE_Pressed, this, &ACombatCharacter::PressViewSubSkillMenu);
@@ -266,6 +294,10 @@ void ACombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void ACombatCharacter::MoveForward(float value)
 {
+	if (GetInputLock()) return;
+
+	if (GetIsCCControlled()) return;
+
 	if (gameplay_disable_option) return;
 	if (Controller != nullptr && value != 0.f)
 	{
@@ -276,6 +308,10 @@ void ACombatCharacter::MoveForward(float value)
 }
 void ACombatCharacter::MoveRight(float value)
 {
+	if (GetInputLock()) return;
+
+	if (GetIsCCControlled()) return;
+
 	if (gameplay_disable_option) return;
 	if (Controller != nullptr && value != 0.f)
 	{
@@ -381,6 +417,7 @@ void ACombatCharacter::AimOffset(float _delta)
 
 void ACombatCharacter::PressFire()
 {
+	if (GetIsCCControlled()) return;
 	if (gameplay_disable_option) return;
 	if (combat_component)
 	{
@@ -402,6 +439,7 @@ void ACombatCharacter::ReleaseGrapple()
 
 void ACombatCharacter::PressReload()
 {
+	if (GetIsCCControlled()) return;
 	if (gameplay_disable_option) return;
 	if (combat_component)
 	{
@@ -464,6 +502,10 @@ void ACombatCharacter::HideCamera()
 
 void ACombatCharacter::PressCrouch()
 {
+	if (GetInputLock()) return;
+
+	if (GetIsCCControlled()) return;
+
 	if (gameplay_disable_option) return;
 	if (bIsCrouched)
 	{
@@ -477,6 +519,10 @@ void ACombatCharacter::PressCrouch()
 
 void ACombatCharacter::Jump()
 {
+	if (GetInputLock()) return;
+	
+	if (GetIsCCControlled()) return;
+
 	if (gameplay_disable_option) return;
 	if (bIsCrouched)
 	{
@@ -538,7 +584,10 @@ void ACombatCharacter::PressAim()
 		{
 			// Smash
 			//combat_component->equipped_weapon->MeleeSmashAttack();
-			combat_component->ServerSmashAttack();
+			if (SmashPowerCheck(100))
+			{
+				combat_component->ServerSmashAttack();
+			}
 		}
 	}
 }
@@ -706,6 +755,46 @@ void ACombatCharacter::UpdateSmashPowerProgress()
 	}
 }
 
+void ACombatCharacter::UpdateManaProgress()
+{
+	scifi_combat_player_controller = scifi_combat_player_controller == nullptr ?
+		Cast<ASciFiCombatPlayerController>(Controller) : scifi_combat_player_controller;
+	if (scifi_combat_player_controller)
+	{
+		scifi_combat_player_controller->SetManaProgress(current_mana, max_mana);
+	}
+}
+void ACombatCharacter::UseMana(float use_mana)
+{
+	float temp = current_mana - use_mana;
+	if (temp <= 0.f)
+	{
+		current_mana = 0.f;
+	}
+	else
+	{
+		current_mana = temp;
+	}
+	UpdateManaProgress();
+}
+void ACombatCharacter::IncreaseMana(float mana)
+{
+	float temp = current_mana + mana;
+	if (temp >= max_mana)
+	{
+		current_mana = max_mana;
+	}
+	else
+	{
+		current_mana = temp;
+	}
+	UpdateManaProgress();
+}
+void ACombatCharacter::OnRep_Mana()
+{
+	UpdateManaProgress();
+}
+
 void ACombatCharacter::ReceiveDamage(AActor* damaged_actor, float damage,
 	const UDamageType* damage_type, class AController* instigator_controller,
 	AActor* damage_causer)
@@ -812,12 +901,20 @@ void ACombatCharacter::Destroyed()
 
 void ACombatCharacter::PressAbility1()
 {
-	UseMainAbility();
+	if (GetIsCCControlled()) return;
+	if (ManaCheck(50))
+	{
+		UseMainAbility();
+	}
 }
 
 void ACombatCharacter::PressAbility2()
 {
-	UseSubAbility();
+	if (GetIsCCControlled()) return;
+	if (ManaCheck(25))
+	{
+		UseSubAbility();
+	}
 }
 
 void ACombatCharacter::UseMainAbility()
@@ -832,7 +929,24 @@ void ACombatCharacter::UseSubAbility()
 
 void ACombatCharacter::PressAbility3()
 {
-	Awakening();
+	// Fuction Test
+	//IncreaseMana(10);
+}
+
+void ACombatCharacter::PressAbility4()
+{
+	// Fuction Test
+	//UseMana(10);
+	FTimerHandle delay_handle;
+	GetWorld()->GetTimerManager().SetTimer(delay_handle, FTimerDelegate::CreateLambda([&]()
+		{
+			IncreaseMana(10);
+		}), 2.0, false);
+	FTimerHandle delay_handle2;
+	GetWorld()->GetTimerManager().SetTimer(delay_handle2, FTimerDelegate::CreateLambda([&]()
+		{
+			Jump();
+		}), 2.0, false);
 }
 
 void ACombatCharacter::Awakening()
@@ -843,6 +957,17 @@ void ACombatCharacter::Awakening()
 	selected_character_class = scifi_combat_player_controller->selected_character_class;
 	SetAbilityTexture();
 	ServerAwakening(selected_character_class);
+}
+
+void ACombatCharacter::SetWeaponImage()
+{
+	//if (combat_component->equipped_weapon)
+	//{
+	//	if (combat_component->equipped_weapon->weapon_image)
+	//	{
+	//		scifi_combat_player_controller->player_hud->status_overlay->weapon_image->SetBrushFromTexture(combat_component->equipped_weapon->weapon_image);
+	//	}
+	//}
 }
 
 void ACombatCharacter::SetAbilityTexture()
@@ -907,6 +1032,8 @@ void ACombatCharacter::NetMulticastAwakening_Implementation(ECombatCharacterClas
 
 void ACombatCharacter::PressEvadeKey()
 {
+	if (GetInputLock()) return;
+
 	CallEvadeFunc();
 }
 
@@ -1009,6 +1136,76 @@ void ACombatCharacter::MultiCastSetDamageImmune_Implementation(bool value)
 	}
 	damage_immune = value;
 }
+
+bool ACombatCharacter::GetIsCCControlled()
+{
+	return cc_component->GetIsCrowdControlled();
+}
+
+
+bool ACombatCharacter::ManaCheck(float need_mana)
+{
+	// true일 경우 마나를 깎고 실행, false면 실행이안됨
+	if (current_mana >= need_mana)
+	{
+		UseMana(need_mana);
+		//UpdateManaProgress();
+		return true;
+	}
+	BeepAbility();
+	SetAbilityAlarmText("Not Enough Mana");
+	return false;
+}
+
+bool ACombatCharacter::SmashPowerCheck(float need_power)
+{
+	// true일 경우 스매시 파워를 깎고 실행, false면 실행이안됨
+	if (current_smash_power >= need_power)
+	{
+		UseSmashPower();
+		//UpdateSmashPowerProgress();
+		return true;
+	}
+	BeepAbility();
+	SetAbilityAlarmText("Not Enough Smash Power");
+	return false;
+}
+
+void ACombatCharacter::SetAbilityAlarmText(FString alram_str)
+{
+	scifi_combat_player_controller->SetAbilityAlarmText(alram_str);
+}
+
+void ACombatCharacter::BeepAbility()
+{
+	if (beep_sound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			beep_sound,
+			GetActorLocation(),
+			GetActorRotation()
+		);
+	}
+}
+
+void ACombatCharacter::InteractPickupItem()
+{
+	inventory_component->InteractPickupItem();
+}
+
+FVector ACombatCharacter::GetFollowCameraLocation()  
+{ 
+	return follow_camera->GetComponentLocation(); 
+}
+
+FVector ACombatCharacter::GetFollowCameraForwardVector()
+{
+	return follow_camera->GetForwardVector();
+}
+
+// Depercated -*-------------------------------------------------------*- Depercated // 
+
 
 void ACombatCharacter::CallPressGrappleEvent()
 {

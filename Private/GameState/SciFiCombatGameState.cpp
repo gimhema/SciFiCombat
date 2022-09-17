@@ -5,11 +5,22 @@
 #include "Net/UnrealNetwork.h"
 #include "SciFiCombat/Public/PlayerState/SciFiCombatPlayerState.h"
 
+ASciFiCombatGameState::ASciFiCombatGameState()
+{
+	static ConstructorHelpers::FObjectFinder<UDataTable> BP_ItemDB(TEXT("DataTable'/Game/Data/ItemDB.ItemDB'"));
+	ItemDB = BP_ItemDB.Object;
+}
+
 void ASciFiCombatGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ASciFiCombatGameState, game_winner);
+}
+
+UDataTable* ASciFiCombatGameState::GetItemDB() const
+{
+	return ItemDB;
 }
 
 void ASciFiCombatGameState::UpdateScoreRanking(class ASciFiCombatPlayerState* game_player)

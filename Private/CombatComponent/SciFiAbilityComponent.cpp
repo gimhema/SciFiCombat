@@ -388,6 +388,11 @@ void USciFiAbilityComponent::Impulse()
 		spawn_params.Instigator = combat_character;
 		UWorld* world = GetWorld();
 
+		if (combat_character->ability_component->grenade_montage)
+		{
+			combat_character->PlayCombatCharacterAnimMontage(combat_character->ability_component->grenade_montage);
+		}
+
 		if (world)
 		{
 			world->SpawnActor<AAbilityObjectBase>(
