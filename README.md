@@ -12,6 +12,8 @@ link : https://www.youtube.com/watch?v=acJdiXF-D9w
 2022-09-17 : 인벤토리 시스템
 link : https://www.youtube.com/watch?v=x7Y16I_mIrQ
 
+detail : https://velog.io/@mino0215/Inventory-System
+
 ======================
 
 
