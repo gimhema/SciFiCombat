@@ -39,6 +39,22 @@ public:
 	UPROPERTY(meta = (BindWidget), VisibleAnyWhere, BlueprintReadWrite)
 	class UTextBlock* smash_power_text;
 
+	UPROPERTY(meta = (BindWidget), VisibleAnyWhere, BlueprintReadWrite)
+	class UImage* mana_bar;
+
+	UPROPERTY(meta = (BindWidget), VisibleAnyWhere, BlueprintReadWrite)
+	class UTextBlock* mana_text;
+
+	//UPROPERTY(meta = (BindWidget), VisibleAnyWhere, BlueprintReadWrite)
+	//class UImage* mana_bar;
+
+	UPROPERTY(meta = (BindWidget), VisibleAnyWhere, BlueprintReadWrite)
+	class UImage* weapon_image;
+
+	UPROPERTY(meta = (BindWidget), VisibleAnyWhere, BlueprintReadWrite)
+	class UTextBlock* ability_alarm_text;
+
+
 	UPROPERTY(meta = (BindWidget), VisibleAnyWhere)
 	UTextBlock* score_text;
 
@@ -66,4 +82,7 @@ public:
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite)
 	float smash_power_percent = 1.f;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite)
+	float mana_percent = 1.f;
 };

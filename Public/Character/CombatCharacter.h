@@ -44,6 +44,7 @@ protected:
 	virtual void PressAbility1();
 	virtual void PressAbility2();
 	virtual void PressAbility3();
+	virtual void PressAbility4();
 	virtual void Jump() override;
 	UFUNCTION()
 	void ReceiveDamage(AActor* damaged_actor, float damage, 
@@ -60,12 +61,20 @@ public:
 	UPROPERTY(Replicated)
 	bool gameplay_disable_option = false;
 
+	UPROPERTY()
+	bool input_lock = false;
+	FORCEINLINE bool GetInputLock() { return input_lock; }
+	FORCEINLINE void SetInputLock(bool lock) { input_lock = lock; }
+
 	void UpdateHealthProgress();
 	void UpdateSmashPowerProgress();
+	void UpdateManaProgress();
 
 	void UseSmashPower(); // smash_power를 0으로 초기화
 	void IncreaseSmashPower(float sp); // smash_power를 증가
 
+	void UseMana(float use_mana); // smash_power를 0으로 초기화
+	void IncreaseMana(float mana); // smash_power를 증가
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -86,7 +95,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	float death_delay = 3.f;
 	void DeathTimerFinished();
-
+	
+	UFUNCTION()
+	void SetWeaponImage();
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* camera_boom;
@@ -120,6 +131,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USciFiAbilityComponent* ability_component;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UCrowdControlComponent* cc_component;
+	UFUNCTION()
+	bool GetIsCCControlled();
 
 	// Ability Texture
 	UFUNCTION()
@@ -144,6 +159,8 @@ public:
 	class UTexture2D* sub_skill_jumpup_texture;
 
 private:
+
+
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(ACombatWeapon* weapon);
 
@@ -192,9 +209,19 @@ public:
 	FORCEINLINE bool GetDisableGameOption() const { return gameplay_disable_option; }
 	FORCEINLINE float GetCurrentHealth() const { return current_health; }
 	FORCEINLINE void SetCurrentHealth(float health_amount) { current_health = health_amount; }
+
+	FORCEINLINE void SetCurrentMana(float mana) { current_mana = mana; }
+	FORCEINLINE float GetMaxMana() const { return max_mana; }
+	FORCEINLINE float GetCurrentMana() const { return current_mana; }
+	
 	FORCEINLINE float GetMaxHealth() const { return max_health; }
 	FORCEINLINE float GetCurrentSmashPower() const { return current_smash_power; }
+	
 	FORCEINLINE float GetMaxSmashPower() const { return max_smash_power; }
+
+	FVector GetFollowCameraLocation();
+	FVector GetFollowCameraForwardVector();
+
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return combat_component; }
 	FORCEINLINE USciFiAbilityComponent* GetAbilityComponent() const { return ability_component; }
 	FORCEINLINE int32 GetCombatIFF() const { return combat_IFF; }
@@ -234,6 +261,13 @@ public:
 	UFUNCTION()
 	void OnRep_SmashPower();
 
+	UPROPERTY(EditAnywhere, Category = "Status")
+	float max_mana = 100.f;
+	UPROPERTY(ReplicatedUsing = OnRep_Mana, VisibleAnywhere, Category = "Status")
+	float current_mana = 0.f;
+	UFUNCTION()
+	void OnRep_Mana();
+
 	ASciFiCombatPlayerController* scifi_combat_player_controller;
 
 	TSubclassOf<class UUserWidget> sub_skill_select_widget_class;
@@ -261,6 +295,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
 	class UAnimationAsset* evade_anim_sequence;
 
+	UPROPERTY(EditAnywhere, Category = AttackOption)
+	class USceneComponent* cc_marker;
 
 	UPROPERTY(EditAnywhere, Category = Evade, Replicated)
 	float evade_distance = 1000.0f;
@@ -335,10 +371,20 @@ public:
 public:
 	UFUNCTION()
 	void UseMainAbility();
-
 	UFUNCTION()
 	void UseSubAbility();
+	UFUNCTION()
+	bool ManaCheck(float need_mana); // true일 경우 마나를 깎고 실행, false면 실행이안됨
+	UFUNCTION()
+	bool SmashPowerCheck(float need_power); // true일 경우 스매시 파워를 깎고 실행, false면 실행이안됨
+	UFUNCTION()
+	void BeepAbility();
+	UPROPERTY(EditAnywhere)
+	class USoundCue* beep_sound;
 	
+	UFUNCTION()
+	void SetAbilityAlarmText(FString alram_str);
+
 	UPROPERTY()
 	FString available_sub_ability;
 	FORCEINLINE void SetAvailableSubAbility(FString ability_name) { available_sub_ability = ability_name; }
@@ -354,7 +400,19 @@ public:
 	void MultiCastSetDamageImmune(bool value);
 	FORCEINLINE bool GetDamageImmune() const { return damage_immune; }
 
+public:
+	// Inventory
+	UFUNCTION(BlueprintImplementableEvent)
+	void ReloadInventory();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = InventoryInfo, meta = (AllowPrivateAccess = "true"))
+	class UInventoryComponent* inventory_component;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* item_collection_sphere;
+
+	void InteractPickupItem();
+// Depercated
 public:
 	UPROPERTY(BlueprintReadWrite)
 	bool anim_control_test_flag = true;

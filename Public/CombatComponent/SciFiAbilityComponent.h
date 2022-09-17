@@ -143,6 +143,8 @@ public:
 	void Impulse();
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AAbilityObjectBase> impulse_object;
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* grenade_montage;
 
 	UFUNCTION()
 	void BlackHole();
@@ -182,9 +184,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AAbilityObjectBase> heal_object;
 };
-
-
-
 
 
 
