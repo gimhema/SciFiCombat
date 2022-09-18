@@ -20,6 +20,8 @@ detail : https://velog.io/@mino0215/Inventory-System
 
 link : https://www.youtube.com/watch?v=WkHf3oVAtls
 
+detail : https://velog.io/@mino0215/Chat-System
+
 ======================
 
 
