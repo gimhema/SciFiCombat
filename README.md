@@ -22,6 +22,10 @@ link : https://www.youtube.com/watch?v=WkHf3oVAtls
 
 detail : https://velog.io/@mino0215/Chat-System
 
+2022-09-20 : 인벤토리 시스템 아이템 액션 테스트
+
+detail : https://velog.io/@mino0215/Inventory-Item-Aciton
+
 ======================
 
 
