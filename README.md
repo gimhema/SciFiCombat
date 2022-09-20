@@ -26,6 +26,10 @@ detail : https://velog.io/@mino0215/Chat-System
 
 detail : https://velog.io/@mino0215/Inventory-Item-Aciton
 
+2022-09-21 : 채팅 감정 표현, 인벤토리 아이템 액션 (장착, 스폰)
+
+link : https://www.youtube.com/watch?v=XG_O5cJRCIA
+
 ======================
 
 
