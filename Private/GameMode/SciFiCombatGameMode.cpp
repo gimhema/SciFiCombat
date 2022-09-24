@@ -9,7 +9,7 @@
 #include "SciFiCombat/Public/PlayerState/SciFiCombatPlayerState.h"
 #include "SciFiCombat/Public/GameState/SciFiCombatGameState.h"
 #include "SciFiCombat/Public/ItemSpawner/DefenseObj.h"
-
+#include "Kismet/KismetMathLibrary.h"
 namespace MatchState
 {
 	const FName Cooldown = FName("Cooldown");
@@ -24,8 +24,15 @@ void ASciFiCombatGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+
 	game_start_time = GetWorld()->GetTimeSeconds();
 }
+
+//void ASciFiCombatGameMode::PostLogin(APlayerController* NewPlayer)
+//{
+//	Super::PostLogin(NewPlayer);
+//
+//}
 
 void ASciFiCombatGameMode::InitializePlayerIFF()
 {
@@ -52,6 +59,10 @@ void ASciFiCombatGameMode::OnMatchStateSet()
 		if (match_player_controller)
 		{
 			match_player_controller->OnMatchStateSet(MatchState);
+
+			//int64 player_idx = UKismetMathLibrary::RandomInteger64(100);
+			//FString player_name = "Player" + FString::FromInt(player_idx);
+			//ChangeName(match_player_controller, player_name, false);
 		}
 	}
 }

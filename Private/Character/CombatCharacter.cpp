@@ -11,6 +11,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Inventory/InventoryComponent.h"
+#include "Inventory/InventoryAction/ItemActionComponent.h"
 #include "Inventory/InteractableBase.h"
 #include "SciFiCombat/Public/CombatComponent/CombatComponent.h"
 #include "SciFiCombat/Public/CombatComponent/SciFiAbilityComponent.h"
@@ -35,6 +36,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Sound/SoundCue.h"
+#include "Animation/AnimationAsset.h"
 
 // Sets default values
 ACombatCharacter::ACombatCharacter()
@@ -85,6 +87,9 @@ ACombatCharacter::ACombatCharacter()
 
 	inventory_component = CreateDefaultSubobject<UInventoryComponent>(TEXT("ItemInventoryComponent"));
 	inventory_component->SetIsReplicated(true);
+	
+	item_action_component = CreateDefaultSubobject<UItemActionComponent>(TEXT("ItemActionComponent"));
+	item_action_component->SetIsReplicated(true);
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
@@ -134,6 +139,7 @@ void ACombatCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	inventory_component->SetInventoryOwer(this);
+	item_action_component->InitializeItemActionComponent(this);
 	UpdateHealthProgress();
 	UpdateSmashPowerProgress();
 	UpdateManaProgress();
@@ -1204,9 +1210,66 @@ FVector ACombatCharacter::GetFollowCameraForwardVector()
 	return follow_camera->GetForwardVector();
 }
 
+
+void ACombatCharacter::CallEmotion(const FString& emotion)
+{
+	ServerCallEmotion(emotion);
+}
+
+void ACombatCharacter::ServerCallEmotion_Implementation(const FString& emotion)
+{
+	MultiCastCallEmotion(emotion);
+}
+
+void ACombatCharacter::MultiCastCallEmotion_Implementation(const FString& emotion)
+{
+	if (emotion == "dance")
+	{
+		PlayAnimSequence(dance_anim_sequence);
+		ResetAnimMode(dance_delay);
+	}
+	else if (emotion == "lol")
+	{
+		PlayAnimSequence(lol_anim_sequence);
+		ResetAnimMode(lol_delay);
+	}
+	else if (emotion == "meditation")
+	{
+		PlayAnimSequence(meditation_anim_sequence);
+		ResetAnimMode(meditation_delay);
+	}
+}
+
+void ACombatCharacter::PlayAnimSequence(class UAnimationAsset* animation_asset)
+{
+	GetMesh()->PlayAnimation(animation_asset, false);
+}
+
+void ACombatCharacter::ResetAnimMode(float delay)
+{
+	FTimerHandle wait_handle;
+	GetWorld()->GetTimerManager().SetTimer(wait_handle, FTimerDelegate::CreateLambda([&]()
+		{
+			GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+		}), delay, false);
+}
+
+/*
+Cast<ACombatCharacter>(GetOwner())->GetMesh()->PlayAnimation(swing_anim_sequence2, false);
+
+void ACombatSpear::ResetAnimMode(float delay)
+{
+	FTimerHandle wait_handle;
+	GetWorld()->GetTimerManager().SetTimer(wait_handle, FTimerDelegate::CreateLambda([&]()
+		{
+			weapon_owner_character->GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+		}), delay, false);
+}
+*/
+
+
+
 // Depercated -*-------------------------------------------------------*- Depercated // 
-
-
 void ACombatCharacter::CallPressGrappleEvent()
 {
 	if (HasAuthority())

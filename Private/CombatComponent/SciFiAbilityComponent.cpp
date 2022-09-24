@@ -209,18 +209,22 @@ void USciFiAbilityComponent::ServerExecuteMainAbility_Implementation(ECombatChar
 
 void USciFiAbilityComponent::MulticastExecuteMainAbility_Implementation(ECombatCharacterClass selected_character_class)
 {
-	switch (selected_character_class)
+	//if(Autori)
+	if (combat_character->HasAuthority())
 	{
-	case ECombatCharacterClass::ECC_CombatMaster:
-		SpawnTurret();
-		//Teleport();
-		break;
-	case ECombatCharacterClass::ECC_Magician:
-		SpawnWall();
-		break;
-	case ECombatCharacterClass::ECC_Guardian:
-		DamageImmune();
-		break;
+		switch (selected_character_class)
+		{
+		case ECombatCharacterClass::ECC_CombatMaster:
+			SpawnTurret();
+			//Teleport();
+			break;
+		case ECombatCharacterClass::ECC_Magician:
+			SpawnWall();
+			break;
+		case ECombatCharacterClass::ECC_Guardian:
+			DamageImmune();
+			break;
+		}
 	}
 }
 

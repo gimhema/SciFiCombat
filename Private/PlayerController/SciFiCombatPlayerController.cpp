@@ -20,6 +20,7 @@
 #include "SciFiCombat/Public/Character/GuardianBase.h"
 #include "TimerManager.h"
 
+
 void ASciFiCombatPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -28,6 +29,7 @@ void ASciFiCombatPlayerController::BeginPlay()
 
 	player_hud = Cast<ASciFiCombatPlayerHUD>(GetHUD());
 	CheckMatchState();
+	//player_hud->InitializeChatWidget(this);
 }
 
 void ASciFiCombatPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -563,5 +565,55 @@ void ASciFiCombatPlayerController::MultiCastPossessSelectClass_Implementation(AP
 	if (HasAuthority())
 	{
 		Possess(inPawn);
+	}
+}
+
+void ASciFiCombatPlayerController::InitializeChatWidget()
+{
+	
+}
+
+void ASciFiCombatPlayerController::ServerSendMessage_Implementation(const FName sender, const FText & message)
+{
+	FString message_str = message.ToString();
+	if (message_str[0] == '/')
+	{
+		EmotionParsingProcess(message_str);
+	}
+
+	TArray<AActor*> ActorsToFind;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASciFiCombatPlayerController::StaticClass(), ActorsToFind);
+	for (AActor* find_controller : ActorsToFind)
+	{
+		if (IsValid(find_controller))
+		{
+			Cast<ASciFiCombatPlayerController>(find_controller)->ClientAddMessage(sender, message);
+		}
+	}
+}
+
+void ASciFiCombatPlayerController::ClientAddMessage_Implementation(const FName sender, const FText & message)
+{
+	player_hud->AddMessage(sender, message);
+}
+
+void ASciFiCombatPlayerController::EmotionParsingProcess(const FString& message)
+{
+	ACombatCharacter* player_character = Cast<ACombatCharacter>(GetPawn());
+	if (player_character)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Parse String : %s"), *message);
+		if (message == "/dance")
+		{
+			player_character->CallEmotion("dance");
+		}
+		else if (message == "/lol")
+		{
+			player_character->CallEmotion("lol");
+		}
+		else if (message == "/meditation")
+		{
+			player_character->CallEmotion("meditation");
+		}
 	}
 }

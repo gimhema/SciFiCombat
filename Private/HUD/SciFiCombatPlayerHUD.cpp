@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "SciFiCombat/Public/HUD/PlayerStatusOverlay.h"
 #include "SciFiCombat/Public/HUD/WaitingGameWidget.h"
+#include "Chat/UserChatWidget.h"
 
 void ASciFiCombatPlayerHUD::DrawHUD()
 {
@@ -64,7 +65,7 @@ void ASciFiCombatPlayerHUD::AddWaitingWidget()
 void ASciFiCombatPlayerHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
+	//InitializeChatWidget();
 //	AddStatusOverlay();
 }
 
@@ -76,6 +77,17 @@ void ASciFiCombatPlayerHUD::AddStatusOverlay()
 		status_overlay = CreateWidget<UPlayerStatusOverlay>(player_controller, StatusOverlayClass);
 		status_overlay->AddToViewport();
 	}
+}
+
+void ASciFiCombatPlayerHUD::InitializeChatWidget(APlayerController* player_controller)
+{
+	chat_widget = CreateWidget<UUserChatWidget>(player_controller, UUserWidget::StaticClass());
+	chat_widget->AddToViewport();
+}
+
+void ASciFiCombatPlayerHUD::AddMessage(FName sender, FText message)
+{
+	chat_widget->AddMessage(sender, message);
 }
 
 
