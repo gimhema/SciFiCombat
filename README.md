@@ -30,6 +30,10 @@ detail : https://velog.io/@mino0215/Inventory-Item-Aciton
 
 link : https://www.youtube.com/watch?v=XG_O5cJRCIA
 
+2022-09-25 : 장비 제작 시스템 (장착, 스폰)
+
+link : https://www.youtube.com/watch?v=gFQEfAFwAkY
+
 ======================
 
 
