@@ -34,6 +34,8 @@ link : https://www.youtube.com/watch?v=XG_O5cJRCIA
 
 link : https://www.youtube.com/watch?v=gFQEfAFwAkY
 
+detail : https://velog.io/@mino0215/Inveotry-System-Update-Equipment-Craft-System
+
 ======================
 
 
