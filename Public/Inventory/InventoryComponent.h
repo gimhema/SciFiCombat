@@ -26,6 +26,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Utils")
 	bool AddItemToInventoryByID(FName ID);
 
+	UFUNCTION(Server, Reliable)
+	void ServerAddItem(const FInventoryItem & ItemToAdd);
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticastAddItem(const FInventoryItem & ItemToAdd);
+
+
 	/** Function to check for the closest Interactable in sight and in range. */
 	void CheckForInteractables();
 
@@ -52,6 +58,9 @@ public:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
 	TArray<FInventoryItem> inventory;
 
+	UPROPERTY(Replicated, BlueprintReadWrite)
+	FInventoryItem selected_item;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 money;
 
@@ -67,6 +76,26 @@ public:
 	UPROPERTY()
 	class ACombatCharacter* inventory_owner;
 
+	UPROPERTY()
+	bool is_item_select = false;
+public:
+
 	UFUNCTION()
 	void SetInventoryOwer(class ACombatCharacter* _owner);
+
+	UFUNCTION()
+	bool ConsumableCheck(FInventoryItem ItemToAdd);
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetItemQuentity(FText item_name);
+
+
+	UFUNCTION(BlueprintCallable)
+	void SelectItem(int idx);
+	UFUNCTION(BlueprintCallable)
+	void SelectItemReset();
+	UFUNCTION(BlueprintCallable)
+	void UseItem();
+
+
 };

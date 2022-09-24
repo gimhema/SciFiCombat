@@ -70,4 +70,16 @@ public:
 public:
 	float texture_size_offset = 1.f;
 	FORCEINLINE void SetCrosshairTextureSizeOffset(float offset) { texture_size_offset = offset; }
+
+public:
+	// Chat System Member
+	UPROPERTY(BlueprintReadWrite)
+	class UUserChatWidget* chat_widget;
+
+public:
+	// Chat System Method
+	UFUNCTION(BlueprintCallable)
+	void InitializeChatWidget(APlayerController* player_controller);
+	UFUNCTION(BlueprintCallable)
+	void AddMessage(FName sender, FText message);
 };

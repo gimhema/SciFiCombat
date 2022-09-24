@@ -408,10 +408,37 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = InventoryInfo, meta = (AllowPrivateAccess = "true"))
 	class UInventoryComponent* inventory_component;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = InventoryInfo, meta = (AllowPrivateAccess = "true"))
+	class UItemActionComponent* item_action_component;
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* item_collection_sphere;
 
 	void InteractPickupItem();
+
+public:
+	// Emotion
+	UPROPERTY(EditAnywhere, Category = Emotion)
+	class UAnimationAsset* dance_anim_sequence;
+	UPROPERTY(EditAnywhere, Category = Emotion)
+	class UAnimationAsset* lol_anim_sequence;
+	UPROPERTY(EditAnywhere, Category = Emotion)
+	class UAnimationAsset* meditation_anim_sequence;
+	UPROPERTY(EditAnywhere, Category = Emotion)
+	float dance_delay = 2.0f;
+	UPROPERTY(EditAnywhere, Category = Emotion)
+	float lol_delay = 2.0f;
+	UPROPERTY(EditAnywhere, Category = Emotion)
+	float meditation_delay = 2.0f;
+	void CallEmotion(const FString & emotion);
+	UFUNCTION(Server, Reliable)
+	void ServerCallEmotion(const FString& emotion);
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastCallEmotion(const FString& emotion);
+	
+	void PlayAnimSequence(class UAnimationAsset* animation_asset);
+	void ResetAnimMode(float delay);
 // Depercated
 public:
 	UPROPERTY(BlueprintReadWrite)

@@ -20,6 +20,7 @@ class SCIFICOMBAT_API ASciFiCombatGameMode : public AGameMode
 
 public:
 	ASciFiCombatGameMode();
+	//virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PlayerEliminated(class ACombatCharacter* ElimmedCharacter,
 		class ASciFiCombatPlayerController* VictimController,

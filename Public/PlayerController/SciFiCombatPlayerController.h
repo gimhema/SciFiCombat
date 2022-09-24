@@ -133,6 +133,23 @@ protected:
 	void ClientJointGame(FName _match_state, float _wait_time, float _match, float _cool_down, float _game_start_time);
 
 	void PollInit();
+
+public:
+	// Chat System Member
+
+public:
+	// Chat System Method
+
+	UFUNCTION()
+	void InitializeChatWidget();
+
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerSendMessage(const FName sender, const FText & message);
+	UFUNCTION(Client, Reliable, BlueprintCallable)
+	void ClientAddMessage(const FName sender, const FText & message);
+
+	UFUNCTION()
+	void EmotionParsingProcess(const FString& message);
 };
 
 

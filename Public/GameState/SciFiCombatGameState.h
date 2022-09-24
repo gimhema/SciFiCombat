@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
 #include "Engine/DataTable.h"
+#include "Inventory/ItemCraftRecipe.h"
 #include "SciFiCombatGameState.generated.h"
 
 /**
@@ -25,10 +26,18 @@ public:
 
 	UDataTable* GetItemDB() const;
 
+	UDataTable* GetCraftRecipeDB() const;
+
 private:
 	float winner_score = 0.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UDataTable* ItemDB;
 
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	class UDataTable* CraftDB;
+
+	UFUNCTION(BlueprintCallable)
+	FItemCraftRecipe GetCrafitRecipeInfo(FName ID);
 };
