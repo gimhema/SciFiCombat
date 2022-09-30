@@ -43,6 +43,8 @@ detail : https://velog.io/@mino0215/Inveotry-System-Update-Equipment-Craft-Syste
 
 link : https://www.youtube.com/watch?v=gXhi6nk_5mE
 
+link : https://www.youtube.com/watch?v=PY23MVhyFAM
+
 ======================
 
 # 1. Multi Play
