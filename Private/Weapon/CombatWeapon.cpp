@@ -261,6 +261,11 @@ void ACombatWeapon::ComboProcess()
 
 }
 
+void ACombatWeapon::MeleeDashSmashAttack()
+{
+
+}
+
 void ACombatWeapon::MeleeSmashAttack()
 {
 	weapon_owner_character->UseSmashPower();

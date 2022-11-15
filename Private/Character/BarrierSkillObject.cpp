@@ -77,7 +77,6 @@ void ABarrierSkillObject::OnBoxOverlap(
 				effect_rotation
 			);
 		}
-
 	}
 
 	if (monster_bullet_valid)

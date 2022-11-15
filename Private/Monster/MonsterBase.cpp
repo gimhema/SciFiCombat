@@ -93,6 +93,7 @@ void AMonsterBase::ReceiveDamage(AActor* damaged_actor, float damage,
 			{
 				DeathMotion();
 				death_motion_play_opt = false;
+				target_player = nullptr;
 			}
 		}
 	}

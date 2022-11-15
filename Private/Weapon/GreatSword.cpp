@@ -71,6 +71,38 @@ void AGreatSword::CCProcess(AActor* cc_target_actor)
 	}
 }
 
+void AGreatSword::MeleeDashSmashAttack()
+{
+	Super::MeleeDashSmashAttack();
+	SetWeaponOwnerInputLock(true);
+	cc_mode = true;
+	is_can_melee_attack = false;
+	melee_hit_enable = true;
+
+	melee_damage = dash_smash_damage;
+	weapon_owner_character->GetMesh()->PlayAnimation(dash_smash_anim_sequence, false);
+
+	FTimerHandle smash_handle;
+	GetWorld()->GetTimerManager().SetTimer(smash_handle, FTimerDelegate::CreateLambda([&]()
+		{
+			weapon_owner_character->ForceMoveCharacter(dash_smash_distance, dash_smash_force);
+		}), dash_smash_launch_delay, false);
+
+	FTimerHandle wait_handle;
+	GetWorld()->GetTimerManager().SetTimer(wait_handle, FTimerDelegate::CreateLambda([&]()
+		{
+			is_can_melee_attack = true;
+			melee_hit_enable = false;
+			melee_damage = melee_damage_reset;
+			weapon_owner_character->GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+			SetWeaponOwnerInputLock(false);
+			HitAreaReset();
+			cc_mode = false;
+			// 여기에 코드를 치면 된다.
+		}), dash_smash_delay, false); //반복도 여기서 추가 변수를 선언해 설정가능
+	// Delay
+}
+
 void AGreatSword::MeleeSmashAttack()
 {
 	Super::MeleeSmashAttack();

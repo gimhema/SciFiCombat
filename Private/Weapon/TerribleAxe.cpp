@@ -99,6 +99,39 @@ void ATerribleAxe::CCProcess(AActor* cc_target_actor)
 	}
 }
 
+void ATerribleAxe::MeleeDashSmashAttack()
+{
+	Super::MeleeDashSmashAttack();
+	if (is_can_melee_attack)
+	{
+		SetWeaponOwnerInputLock(true);
+		is_can_melee_attack = false;
+		melee_hit_enable = true;
+
+		melee_damage = dash_smash_damage;
+		weapon_owner_character->GetMesh()->PlayAnimation(dash_smash_anim_sequence, false);
+
+		FTimerHandle smash_handle;
+		GetWorld()->GetTimerManager().SetTimer(smash_handle, FTimerDelegate::CreateLambda([&]()
+			{
+				weapon_owner_character->ForceMoveCharacter(dash_smash_distance, dash_smash_force);
+			}), dash_smash_launch_delay, false);
+
+		// Delay
+		FTimerHandle wait_handle;
+		GetWorld()->GetTimerManager().SetTimer(wait_handle, FTimerDelegate::CreateLambda([&]()
+			{
+				is_can_melee_attack = true;
+				melee_hit_enable = false;
+				melee_damage = melee_damage_reset;
+				weapon_owner_character->GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+				HitAreaReset();
+				SetWeaponOwnerInputLock(false);
+			}), dash_smash_delay, false);
+	}
+	// Delay
+}
+
 void ATerribleAxe::MeleeSmashAttack()
 {
 	Super::MeleeSmashAttack();

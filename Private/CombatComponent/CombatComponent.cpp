@@ -2,7 +2,7 @@
 
 
 #include "CombatComponent/CombatComponent.h"
-// #include "SciFiCombat/Public/Weapon/CombatWeapon.h"
+ #include "SciFiCombat/Public/Weapon/CombatWeapon.h"
 #include "SciFiCombat/Public/Character/CombatCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
@@ -278,18 +278,33 @@ void UCombatComponent::SetCrosshairHUD(float _delta)
 void UCombatComponent::InterpAimFov(float _delta)
 {
 	if (equipped_weapon == nullptr) return;
-	if (isAim)
+
+	if (equipped_weapon->weapon_style == EWeaponStyle::WST_Melee)
 	{
-		current_aim_fov = FMath::FInterpTo(current_aim_fov, equipped_weapon->GetAimFOV(), _delta,
+		// 밀리 타입 무기 전용 FOV로 변경
+		current_aim_fov = FMath::FInterpTo(current_aim_fov, melee_weapon_fov, _delta,
 			equipped_weapon->GetAimInterpSpeed());
+		if (weapon_owner && weapon_owner->GetFollowCamera())
+		{
+			weapon_owner->GetFollowCamera()->SetFieldOfView(current_aim_fov);
+		}
 	}
 	else
 	{
-		current_aim_fov = FMath::FInterpTo(current_aim_fov, default_aim_fov, _delta, aim_interp_speed);
-	}
-	if (weapon_owner && weapon_owner->GetFollowCamera())
-	{
-		weapon_owner->GetFollowCamera()->SetFieldOfView(current_aim_fov);
+		// 기존의 로직
+		if (isAim)
+		{
+			current_aim_fov = FMath::FInterpTo(current_aim_fov, equipped_weapon->GetAimFOV(), _delta,
+				equipped_weapon->GetAimInterpSpeed());
+		}
+		else
+		{
+			current_aim_fov = FMath::FInterpTo(current_aim_fov, default_aim_fov, _delta, aim_interp_speed);
+		}
+		if (weapon_owner && weapon_owner->GetFollowCamera())
+		{
+			weapon_owner->GetFollowCamera()->SetFieldOfView(current_aim_fov);
+		}
 	}
 }
 
@@ -520,6 +535,15 @@ void UCombatComponent::MultiCastServerMeleeAttack_Implementation()
 	{
 		equipped_weapon->ComboProcess();
 	}
+}
+
+void UCombatComponent::ServerDashSmashAttack_Implementation()
+{
+	MultiCastDashSmashAttack();
+}
+void UCombatComponent::MultiCastDashSmashAttack_Implementation()
+{
+	equipped_weapon->MeleeDashSmashAttack();
 }
 
 void UCombatComponent::ServerSmashAttack_Implementation()

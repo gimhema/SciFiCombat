@@ -123,6 +123,10 @@ void ACombatCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(ACombatCharacter, current_grapple_force_vec);
 	DOREPLIFETIME(ACombatCharacter, evade_montage);
 	DOREPLIFETIME(ACombatCharacter, damage_immune);
+	DOREPLIFETIME(ACombatCharacter, is_sprint);
+	DOREPLIFETIME(ACombatCharacter, sprint_speed);
+	DOREPLIFETIME(ACombatCharacter, sprint_reset_speed);
+	DOREPLIFETIME(ACombatCharacter, is_guard);
 }
 
 void ACombatCharacter::CombatIFFInitialize()
@@ -138,6 +142,8 @@ void ACombatCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	sprint_reset_speed = GetCharacterMovement()->MaxWalkSpeed;
+
 	inventory_component->SetInventoryOwer(this);
 	item_action_component->InitializeItemActionComponent(this);
 	UpdateHealthProgress();
@@ -271,6 +277,10 @@ void ACombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ACombatCharacter::PressCrouch);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ACombatCharacter::PressAim);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ACombatCharacter::ReleaseAim);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ACombatCharacter::OnSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ACombatCharacter::OffSprint);
+
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ACombatCharacter::PressFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ACombatCharacter::ReleaseFire);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ACombatCharacter::PressReload);
@@ -282,6 +292,9 @@ void ACombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("Awakening", IE_Pressed, this, &ACombatCharacter::PressAbility3);
 	PlayerInputComponent->BindAction("TestKey2", IE_Pressed, this, &ACombatCharacter::PressAbility4);
+
+	PlayerInputComponent->BindAction("Guard", IE_Pressed, this, &ACombatCharacter::PressGuard);
+	PlayerInputComponent->BindAction("Guard", IE_Released, this, &ACombatCharacter::ReleaseGuard);
 
 	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &ACombatCharacter::PressViewOnCursor);
 	PlayerInputComponent->BindAction("ViewSubSkillMenu", IE_Pressed, this, &ACombatCharacter::PressViewSubSkillMenu);
@@ -590,9 +603,16 @@ void ACombatCharacter::PressAim()
 		{
 			// Smash
 			//combat_component->equipped_weapon->MeleeSmashAttack();
-			if (SmashPowerCheck(100))
+			if (is_sprint)
 			{
-				combat_component->ServerSmashAttack();
+				combat_component->ServerDashSmashAttack();
+			}
+			else
+			{
+				if (SmashPowerCheck(100))
+				{
+					combat_component->ServerSmashAttack();
+				}
 			}
 		}
 	}
@@ -805,6 +825,7 @@ void ACombatCharacter::ReceiveDamage(AActor* damaged_actor, float damage,
 	const UDamageType* damage_type, class AController* instigator_controller,
 	AActor* damage_causer)
 {
+	if (is_guard) { return; }
 	if (GetDamageImmune() == true) { return; }
 
 	current_health = FMath::Clamp(current_health - damage, 0.f, max_health);
@@ -1047,11 +1068,26 @@ void ACombatCharacter::CallEvadeFunc()
 {
 	if (HasAuthority())
 	{
-		ServerEvade();
+		if (is_sprint)
+		{
+			ServerBlink();
+		}
+		else
+		{
+			ServerEvade();
+		}
+
 	}
 	else
 	{
-		ServerEvade();
+		if (is_sprint)
+		{
+			ServerBlink();
+		}
+		else
+		{
+			ServerEvade();
+		}
 	}
 
 }
@@ -1080,6 +1116,40 @@ void ACombatCharacter::EvadeUpdate()
 void ACombatCharacter::EvadeFinished()
 {
 	// Depercated
+}
+
+void ACombatCharacter::ServerBlink_Implementation()
+{
+	MultiCastBlink();
+}
+
+void ACombatCharacter::MultiCastBlink_Implementation()
+{
+	// 이펙트 생성
+	if (blink_effect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			this,
+			blink_effect,
+			GetActorLocation(),
+			GetActorRotation()
+		);
+	}
+	// 애니메이션 실행
+	if (blink_anim_sequence)
+	{
+		GetMesh()->PlayAnimation(blink_anim_sequence, false);
+		// Delay
+		FTimerHandle wait_handle;
+		GetWorld()->GetTimerManager().SetTimer(wait_handle, FTimerDelegate::CreateLambda([&]()
+			{
+				GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+			}), blink_anim_sequence->GetPlayLength() - blink_anim_offset, false);
+	}
+	// SetLocation
+	FVector blink_loc = GetActorForwardVector();
+	blink_loc.X += blink_anim_offset;
+	SetActorLocation(blink_loc, true);
 }
 
 void ACombatCharacter::ServerEvade_Implementation()
@@ -1252,6 +1322,118 @@ void ACombatCharacter::ResetAnimMode(float delay)
 		{
 			GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 		}), delay, false);
+}
+
+void ACombatCharacter::OnSprint()
+{
+	if (HasAuthority())
+	{
+		ServerOnSprint();
+	}
+	else
+	{
+		ServerOnSprint();
+	}
+}
+
+void ACombatCharacter::ServerOnSprint_Implementation()
+{
+	NetMulticastOnSprint();
+}
+
+void ACombatCharacter::NetMulticastOnSprint_Implementation()
+{
+	is_sprint = true;
+	GetCharacterMovement()->MaxWalkSpeed = sprint_speed;
+}
+
+void ACombatCharacter::OffSprint()
+{
+	if (HasAuthority())
+	{
+		ServerOffSprint();
+	}
+	else
+	{
+		ServerOffSprint();
+	}
+}
+
+void ACombatCharacter::ServerOffSprint_Implementation()
+{
+	NetMulticastOffSprint();
+}
+
+void ACombatCharacter::NetMulticastOffSprint_Implementation()
+{
+	is_sprint = false;
+	GetCharacterMovement()->MaxWalkSpeed = sprint_reset_speed;
+}
+
+void ACombatCharacter::PressGuard()
+{
+
+	if (combat_component->equipped_weapon->weapon_style == EWeaponStyle::WST_Melee)
+	{
+		// 밀리 무기를 장착중인지 확인
+		if (HasAuthority())
+		{
+			GuardAction();
+		}
+		else
+		{
+			GuardAction();
+		}
+	}
+}
+
+void ACombatCharacter::ReleaseGuard()
+{
+
+	if (combat_component->equipped_weapon->weapon_style == EWeaponStyle::WST_Melee)
+	{
+		// 밀리 무기를 장착중인지 확인
+		if (HasAuthority())
+		{
+			GuardCancel();
+		}
+		else
+		{
+			GuardCancel();
+		}
+	}
+}
+
+void ACombatCharacter::GuardAction()
+{
+	SetInputLock(true);
+	ServerGuardAction();
+}
+
+void ACombatCharacter::ServerGuardAction_Implementation()
+{
+	MulticastGuardAction();
+}
+
+void ACombatCharacter::MulticastGuardAction_Implementation()
+{
+	is_guard = true;
+}
+
+void ACombatCharacter::GuardCancel()
+{
+	SetInputLock(false);
+	ServerGuardCancel();
+}
+
+void ACombatCharacter::ServerGuardCancel_Implementation()
+{
+	MulticastGuardCancel();
+}
+
+void ACombatCharacter::MulticastGuardCancel_Implementation()
+{
+	is_guard = false;
 }
 
 /*
