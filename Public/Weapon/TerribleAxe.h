@@ -23,6 +23,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
 	class UAnimationAsset* smash_anim_sequence;
+	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	class UAnimationAsset* dash_smash_anim_sequence;
 
 	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
 	float smash_force = 20000000.f;
@@ -48,6 +50,7 @@ public:
 	virtual void CCProcess(AActor* cc_target_actor) override;
 	void PlaySwingAnimMontage(int32 combo_idx);
 	virtual void MeleeSmashAttack() override;
+	virtual void MeleeDashSmashAttack() override;
 	void AttackDash(float delay);
 	void ResetAnimMode(float delay);
 };

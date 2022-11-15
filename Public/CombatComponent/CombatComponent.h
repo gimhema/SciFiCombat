@@ -86,6 +86,11 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastServerSmashAttack();
 
+	UFUNCTION(Server, Reliable)
+	void ServerDashSmashAttack();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastDashSmashAttack();
+
 public:
 	// Pickup Item Function
 	void PickupAmmoItem(EWeaponType weapon_type, int32 num_ammo);
@@ -158,6 +163,9 @@ public:
 	float aim_interp_speed = 20.f;
 
 	float current_aim_fov;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	float melee_weapon_fov = 110.f;
 
 	void InterpAimFov(float _delta);
 

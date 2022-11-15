@@ -41,6 +41,10 @@ protected:
 	void ReleaseGrapple();
 	void PressViewSubSkillMenu();
 	void PressViewOnCursor();
+
+	void PressGuard();
+	void ReleaseGuard();
+
 	virtual void PressAbility1();
 	virtual void PressAbility2();
 	virtual void PressAbility3();
@@ -102,8 +106,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* camera_boom;
 
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	class UCameraComponent* follow_camera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* info_widget;
@@ -118,6 +120,10 @@ private:
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* combat_component;
+
+	UPROPERTY(VisibleAnywhere, Category = Camera, BlueprintReadWrite)
+	class UCameraComponent* follow_camera;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UGrappleComponent* grapple_component;
@@ -320,6 +326,32 @@ public:
 	void ServerEvade();
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastEvade();
+	UFUNCTION(Server, Reliable)
+	void ServerBlink();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastBlink();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SprintSpeed, Replicated)
+	bool is_sprint = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SprintSpeed, Replicated)
+	float sprint_speed = 1200.f;
+	UPROPERTY(BlueprintReadWrite, Category = SprintSpeed, Replicated)
+	float sprint_reset_speed;
+
+	UFUNCTION()
+	void OnSprint();
+	UFUNCTION(Server, Reliable)
+	void ServerOnSprint();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticastOnSprint();
+
+	UFUNCTION()
+	void OffSprint();
+	UFUNCTION(Server, Reliable)
+	void ServerOffSprint();
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticastOffSprint();
 
 public:
 	UPROPERTY(BlueprintReadWrite)
@@ -332,6 +364,8 @@ public:
 	bool is_view_sub_skill_menu = false;
 	UPROPERTY(BlueprintReadWrite)
 	bool is_show_mouse_cursor = false;
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool is_guard = false;
 public:
 	// Double Jump
 	UFUNCTION()
@@ -439,6 +473,44 @@ public:
 	
 	void PlayAnimSequence(class UAnimationAsset* animation_asset);
 	void ResetAnimMode(float delay);
+
+	//Camera Effect
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BlurEffect();
+
+public:
+	// Guard
+	// is_guard = true로 변경
+	// 위의 값이 true인동안에는 데미지를 받지않음
+	// 키를 놓으면 다시 false로 돌려짐
+	// 밀리무기에서만 사용가능
+	// 애니메이션은 애니메이션 블루프린트상에서 제어
+
+
+	UFUNCTION()
+	void GuardAction();
+	UFUNCTION(Server, Reliable)
+	void ServerGuardAction();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastGuardAction();
+
+	UFUNCTION()
+	void GuardCancel();
+	UFUNCTION(Server, Reliable)
+	void ServerGuardCancel();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastGuardCancel();
+
+public:
+	// Particle
+	UPROPERTY(EditAnywhere, Category = Blink)
+	class UAnimationAsset* blink_anim_sequence;
+	UPROPERTY(EditAnywhere, Category = Blink)
+	class UParticleSystem* blink_effect;
+	UPROPERTY(EditAnywhere, Category = Blink)
+	float blink_range = 1200.f;
+	UPROPERTY(EditAnywhere, Category = Blink)
+	float blink_anim_offset = 0.5f;
 // Depercated
 public:
 	UPROPERTY(BlueprintReadWrite)

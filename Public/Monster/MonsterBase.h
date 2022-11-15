@@ -42,7 +42,7 @@ public:
 	void UpdateHealthProgress();
 
 public:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	class ACombatCharacter* target_player;
 
 	UFUNCTION()

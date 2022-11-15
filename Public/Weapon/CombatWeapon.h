@@ -146,6 +146,10 @@ public:
 	class ASciFiCombatPlayerController* weapon_owner_controller;
 
 public:
+
+	UFUNCTION()
+	virtual void MeleeDashSmashAttack();
+
 	UFUNCTION()
 	virtual void MeleeSmashAttack();
 	// Melee Property

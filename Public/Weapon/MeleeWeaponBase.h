@@ -39,6 +39,19 @@ public:
 	float spawn_smash_obj_delay = 0.8;
 
 	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	float dash_smash_damage = 0.8;
+	//UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	//float dash_smash_anim_sequence = 0.8;
+	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	float dash_smash_distance = 0.8;
+	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	float dash_smash_force = 0.8;
+	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	float dash_smash_launch_delay = 0.8;
+	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
+	float dash_smash_delay = 0.8;
+
+	UPROPERTY(EditAnywhere, Category = MeleeAttackOption)
 	TSubclassOf<class ASmashDamageObjectDefault> smash_obj;
 
 	UPROPERTY()
