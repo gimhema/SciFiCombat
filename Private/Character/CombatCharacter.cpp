@@ -73,6 +73,10 @@ ACombatCharacter::ACombatCharacter()
 	ability_object_muzzle->SetIsReplicated(true);
 	ability_object_muzzle->SetupAttachment(RootComponent);
 
+	blink_point = CreateDefaultSubobject<USceneComponent>(TEXT("Blink Point"));
+	blink_point->SetIsReplicated(true);
+	blink_point->SetupAttachment(RootComponent);
+
 	cc_marker = CreateDefaultSubobject<USceneComponent>(TEXT("CCMarker"));
 	cc_marker->SetupAttachment(RootComponent);
 	
@@ -1147,8 +1151,16 @@ void ACombatCharacter::MultiCastBlink_Implementation()
 			}), blink_anim_sequence->GetPlayLength() - blink_anim_offset, false);
 	}
 	// SetLocation
-	FVector blink_loc = GetActorForwardVector();
-	blink_loc.X += blink_anim_offset;
+	if (blink_soundcue)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this, 
+			blink_soundcue, 
+			GetActorLocation(), 
+			GetActorRotation());
+	}
+	FVector blink_loc = blink_point->GetComponentLocation();
+	//blink_loc.X += blink_anim_offset;
 	SetActorLocation(blink_loc, true);
 }
 
