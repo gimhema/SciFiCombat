@@ -507,6 +507,10 @@ public:
 	class UAnimationAsset* blink_anim_sequence;
 	UPROPERTY(EditAnywhere, Category = Blink)
 	class UParticleSystem* blink_effect;
+	UPROPERTY(EditAnywhere, Category = AttackOption)
+	class USceneComponent* blink_point;
+	UPROPERTY(EditAnywhere)
+	class USoundCue* blink_soundcue;
 	UPROPERTY(EditAnywhere, Category = Blink)
 	float blink_range = 1200.f;
 	UPROPERTY(EditAnywhere, Category = Blink)
